@@ -50,6 +50,7 @@ about = {
 categories = []
 paging = True
 supported_languages_url = about['website']
+safesearch = True
 
 category_to_keyword = {
     'general': 'web',
@@ -59,8 +60,7 @@ category_to_keyword = {
 }
 
 # search-url
-url = 'https://api.qwant.com/v3/search/{keyword}?{query}&count={count}&offset={offset}'
-
+url = 'https://api.qwant.com/v3/search/{keyword}?q={query}&count={count}&offset={offset}&safesearch={safesearch}'
 
 def request(query, params):
     """Qwant search request"""
@@ -80,6 +80,7 @@ def request(query, params):
     params['url'] = url.format(
         keyword=keyword,
         query=urlencode({'q': query}),
+        safesearch=params['safesearch'],
         offset=offset,
         count=count,
     )
@@ -112,6 +113,9 @@ def response(resp):
 
     # check for an API error
     if search_results.get('status') != 'success':
+        if data.get('error_code') == 5:
+            return [];
+
         msg = ",".join(
             data.get(
                 'message',
